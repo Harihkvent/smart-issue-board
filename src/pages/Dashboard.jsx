@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useNavigate } from 'react-router-dom';
-import { collection, addDoc, getDocs, query, orderBy, updateDoc, doc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, orderBy, updateDoc, doc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase/config';
+import IssueModal from '../components/IssueModal';
 import './Dashboard.css';
 
 export default function Dashboard() {
@@ -18,6 +19,7 @@ export default function Dashboard() {
   const [success, setSuccess] = useState('');
   const [similarIssues, setSimilarIssues] = useState([]);
   const [showSimilarWarning, setShowSimilarWarning] = useState(false);
+  const [selectedIssue, setSelectedIssue] = useState(null);
 
   // Filter states
   const [statusFilter, setStatusFilter] = useState('all');
@@ -39,6 +41,10 @@ export default function Dashboard() {
   useEffect(() => {
     filterIssues();
   }, [issues, statusFilter, priorityFilter]);
+
+  const getUserName = (email) => {
+    return email.split('@')[0];
+  };
 
   const fetchIssues = async () => {
     try {
@@ -192,6 +198,45 @@ export default function Dashboard() {
     }
   };
 
+  const handleDeleteIssue = async (issueId, createdBy) => {
+    if (currentUser.email !== createdBy) {
+      setError('You can only delete your own issues');
+      setTimeout(() => setError(''), 5000);
+      return;
+    }
+
+    if (!confirm('Are you sure you want to delete this issue?')) {
+      return;
+    }
+
+    try {
+      await deleteDoc(doc(db, 'issues', issueId));
+      await fetchIssues();
+      setSuccess('Issue deleted successfully!');
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (error) {
+      setError('Failed to delete issue: ' + error.message);
+      setTimeout(() => setError(''), 5000);
+    }
+  };
+
+  const handleUpdateIssue = async (issueId, updateData) => {
+    try {
+      const issueRef = doc(db, 'issues', issueId);
+      await updateDoc(issueRef, {
+        ...updateData,
+        updatedAt: new Date().toISOString()
+      });
+      
+      await fetchIssues();
+      setSuccess('Issue updated successfully!');
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (error) {
+      setError('Failed to update issue: ' + error.message);
+      setTimeout(() => setError(''), 5000);
+    }
+  };
+
   const handleLogout = async () => {
     try {
       await logout();
@@ -206,7 +251,7 @@ export default function Dashboard() {
       <header className="dashboard-header">
         <div>
           <h1>Smart Issue Board</h1>
-          <p className="user-email">Logged in as: {currentUser?.email}</p>
+          <p className="user-email">Logged in as: {getUserName(currentUser?.email)}</p>
         </div>
         <div className="header-right">
           <button 
@@ -392,12 +437,31 @@ export default function Dashboard() {
                     )}
                     
                     <div className="issue-field">
-                      <strong>Created By:</strong> {issue.createdBy}
+                      <strong>Created By:</strong> {getUserName(issue.createdBy)}
                     </div>
                     
                     <div className="issue-field">
                       <strong>Created:</strong> {new Date(issue.createdAt).toLocaleString()}
                     </div>
+                  </div>
+
+                  <div className="issue-actions">
+                    <button 
+                      onClick={() => setSelectedIssue(issue)} 
+                      className="btn-view"
+                      title="View details and comments"
+                    >
+                      View Details
+                    </button>
+                    {currentUser.email === issue.createdBy && (
+                      <button 
+                        onClick={() => handleDeleteIssue(issue.id, issue.createdBy)} 
+                        className="btn-delete"
+                        title="Delete this issue"
+                      >
+                        Delete
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}
@@ -405,6 +469,14 @@ export default function Dashboard() {
           )}
         </div>
       </div>
+
+      {selectedIssue && (
+        <IssueModal
+          issue={selectedIssue}
+          onClose={() => setSelectedIssue(null)}
+          onUpdate={handleUpdateIssue}
+        />
+      )}
     </div>
   );
 }

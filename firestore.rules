@@ -22,5 +22,28 @@ service cloud.firestore {
       allow delete: if request.auth != null 
                     && request.auth.token.email == resource.data.createdBy;
     }
+
+    // Comments collection rules
+    match /comments/{comment} {
+      // Allow authenticated users to read all comments
+      allow read: if request.auth != null;
+      
+      // Allow authenticated users to create comments
+      // Ensure createdBy field matches the authenticated user
+      allow create: if request.auth != null 
+                    && request.resource.data.createdBy == request.auth.token.email
+                    && request.resource.data.keys().hasAll(['issueId', 'text', 'createdBy', 'createdAt']);
+      
+      // Allow comment creators to update their own comments
+      allow update: if request.auth != null
+                    && request.auth.token.email == resource.data.createdBy
+                    && request.resource.data.createdBy == resource.data.createdBy
+                    && request.resource.data.issueId == resource.data.issueId
+                    && request.resource.data.createdAt == resource.data.createdAt;
+      
+      // Allow comment creators to delete their own comments
+      allow delete: if request.auth != null 
+                    && request.auth.token.email == resource.data.createdBy;
+    }
   }
 }
