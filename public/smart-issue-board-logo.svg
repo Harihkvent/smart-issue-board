@@ -1,0 +1,28 @@
+<svg width="420" height="120" viewBox="0 0 420 120" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#6366F1;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#22D3EE;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <rect x="10" y="20" rx="12" ry="12" width="80" height="80" fill="url(#grad)" />
+
+  <rect x="25" y="35" width="50" height="10" rx="5" fill="white" />
+  <rect x="25" y="55" width="50" height="10" rx="5" fill="white" />
+  <rect x="25" y="75" width="35" height="10" rx="5" fill="white" />
+
+  <circle cx="70" cy="80" r="4" fill="#FACC15"/>
+  <circle cx="60" cy="80" r="4" fill="#22C55E"/>
+  <circle cx="50" cy="80" r="4" fill="#EF4444"/>
+
+  <text x="110" y="65" font-size="34" font-weight="700" fill="#0F172A"
+        font-family="Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif">
+    Smart Issue Board
+  </text>
+
+  <text x="112" y="88" font-size="14" fill="#64748B"
+        font-family="Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif">
+    Simple. Smart. Trackable.
+  </text>
+</svg>
