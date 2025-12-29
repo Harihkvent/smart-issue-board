@@ -118,7 +118,9 @@ export default function IssueModal({ issue, onClose, onUpdate }) {
       const reader = new FileReader();
       reader.onload = (event) => {
         const base64Image = event.target.result;
-        setNewComment(prev => prev + (prev ? '\n' : '') + `![image](${base64Image})`);
+        const imageMarkdown = `![image](${base64Image})`;
+        // Add a visual placeholder instead of the full base64 string
+        setNewComment(prev => prev + (prev ? '\n' : '') + '[🖼️ Image attached]\n' + imageMarkdown);
         setUploadingImage(false);
       };
       reader.onerror = () => {
@@ -131,6 +133,11 @@ export default function IssueModal({ issue, onClose, onUpdate }) {
       alert(`Failed to upload image: ${error.message}`);
       setUploadingImage(false);
     }
+  };
+
+  const getDisplayText = (text) => {
+    // Replace base64 image markdown with a short placeholder for display
+    return text.replace(/!\[image\]\(data:image\/[^)]+\)/g, '');
   };
 
   const getUserName = (email) => {
@@ -260,8 +267,13 @@ export default function IssueModal({ issue, onClose, onUpdate }) {
 
             <form onSubmit={handleAddComment} className="comment-form">
               <textarea
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
+                value={getDisplayText(newComment)}
+                onChange={(e) => {
+                  // Preserve any images that were in the original comment
+                  const images = newComment.match(/!\[image\]\(data:image\/[^)]+\)/g) || [];
+                  const newText = e.target.value;
+                  setNewComment(newText + (images.length > 0 ? '\n' + images.join('\n') : ''));
+                }}
                 placeholder="Add a comment... (upload images using the button below)"
                 rows={3}
                 className="comment-input"
