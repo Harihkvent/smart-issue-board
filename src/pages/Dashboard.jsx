@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { useNavigate } from 'react-router-dom';
 import { collection, addDoc, getDocs, query, orderBy, updateDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase/config';
@@ -7,6 +8,7 @@ import './Dashboard.css';
 
 export default function Dashboard() {
   const { currentUser, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [issues, setIssues] = useState([]);
   const [filteredIssues, setFilteredIssues] = useState([]);
@@ -206,7 +208,16 @@ export default function Dashboard() {
           <h1>Smart Issue Board</h1>
           <p className="user-email">Logged in as: {currentUser?.email}</p>
         </div>
-        <button onClick={handleLogout} className="btn-logout">Logout</button>
+        <div className="header-right">
+          <button 
+            onClick={toggleTheme} 
+            className="theme-toggle"
+            title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+          >
+            {theme === 'light' ? '🌙' : '☀️'}
+          </button>
+          <button onClick={handleLogout} className="btn-logout">Logout</button>
+        </div>
       </header>
 
       <div className="dashboard-content">
