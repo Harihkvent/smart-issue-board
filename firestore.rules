@@ -1,0 +1,26 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Issues collection rules
+    match /issues/{issue} {
+      // Allow authenticated users to read all issues
+      allow read: if request.auth != null;
+      
+      // Allow authenticated users to create issues
+      // Ensure createdBy field matches the authenticated user
+      allow create: if request.auth != null 
+                    && request.resource.data.createdBy == request.auth.token.email
+                    && request.resource.data.keys().hasAll(['title', 'description', 'priority', 'status', 'createdBy', 'createdAt', 'updatedAt']);
+      
+      // Allow authenticated users to update issues
+      // Prevent changing the createdBy and createdAt fields
+      allow update: if request.auth != null
+                    && request.resource.data.createdBy == resource.data.createdBy
+                    && request.resource.data.createdAt == resource.data.createdAt;
+      
+      // Only allow the creator to delete their own issues
+      allow delete: if request.auth != null 
+                    && request.auth.token.email == resource.data.createdBy;
+    }
+  }
+}
